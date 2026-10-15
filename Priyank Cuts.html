@@ -1,0 +1,510 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Priyank Cuts</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout concept: the page is an edit timeline. Sections are bins and tracks, the header carries a running timecode, projects are clips you can open. */
+:root {
+  --bg: #0f1216;
+  --panel: #171c22;
+  --panel-2: #1e252d;
+  --line: #2b343e;
+  --fg: #e8ecf0;
+  --muted: #94a0ad;
+  --teal: #2fc4b2;
+  --amber: #f2a93b;
+  --rose: #ef6f8a;
+  --violet: #9b8cff;
+  --accent: #f2a93b;
+  --on-accent: #1a1204;
+  --font-display: "Bricolage Grotesque", "Arial Narrow", Arial, sans-serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f1f3f5; --panel: #ffffff; --panel-2: #e8ecef; --line: #cfd6dc;
+    --fg: #15191d; --muted: #566270;
+    --teal: #0b8f80; --amber: #b86e00; --rose: #c2405d; --violet: #6552d8;
+    --accent: #b86e00; --on-accent: #ffffff;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f1f3f5; --panel: #ffffff; --panel-2: #e8ecef; --line: #cfd6dc;
+  --fg: #15191d; --muted: #566270;
+  --teal: #0b8f80; --amber: #b86e00; --rose: #c2405d; --violet: #6552d8;
+  --accent: #b86e00; --on-accent: #ffffff;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-block: 0 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+a { color: inherit; }
+h1, h2, h3 { font-family: var(--font-display); line-height: 1.05; margin: 0; text-wrap: balance; }
+p { margin: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-family: var(--font-mono); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
+/* header */
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.top .wrap { display: flex; align-items: center; gap: 16px; padding-block: 12px; flex-wrap: wrap; }
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 20px; text-decoration: none; margin-right: auto; }
+.tc { font-family: var(--font-mono); font-size: 13px; color: var(--accent); font-variant-numeric: tabular-nums; }
+nav { display: flex; gap: 4px; flex-wrap: wrap; }
+nav a { text-decoration: none; font-size: 14px; padding: 6px 10px; border-radius: 4px; color: var(--muted); }
+nav a:hover { color: var(--fg); background: var(--panel-2); }
+button { font: inherit; color: inherit; cursor: pointer; }
+.theme { background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; font-size: 13px; }
+
+/* hero */
+.hero { padding-block: 56px 40px; display: grid; gap: 32px; }
+.hero h1 { font-size: clamp(2.6rem, 8vw, 6rem); font-weight: 800; letter-spacing: -.02em; max-width: 14ch; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero .sub { max-width: 58ch; color: var(--muted); font-size: 18px; }
+.cta { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { display: inline-block; padding: 12px 20px; border-radius: 4px; text-decoration: none; font-weight: 600; border: 1px solid var(--line); background: var(--panel); }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.meta span { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+
+/* timeline */
+.timeline { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.ruler { display: flex; justify-content: space-between; padding: 6px 12px 6px 64px; border-bottom: 1px solid var(--line); font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+.track { display: grid; grid-template-columns: 52px 1fr; border-bottom: 1px solid var(--line); min-height: 34px; }
+.track:last-child { border-bottom: 0; }
+.track .tn { font-family: var(--font-mono); font-size: 11px; color: var(--muted); padding: 8px; border-right: 1px solid var(--line); background: var(--panel-2); }
+.lane { position: relative; height: 34px; }
+.clip { position: absolute; top: 4px; bottom: 4px; border-radius: 3px; font-size: 11px; font-family: var(--font-mono); padding: 3px 6px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #0d1014; font-weight: 500; }
+.c0 { background: var(--teal); } .c1 { background: var(--amber); } .c2 { background: var(--rose); } .c3 { background: var(--violet); }
+:root[data-theme="light"] .clip { color: #fff; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .clip { color: #fff; } }
+.hero .lane { height: 40px; }
+.playhead { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--rose); left: 38%; pointer-events: none; animation: scrub 14s linear infinite; }
+.playhead::before { content: ""; position: absolute; top: 0; left: -5px; border: 6px solid transparent; border-top-color: var(--rose); border-left-width: 6px; }
+@keyframes scrub { from { left: 4%; } to { left: 96%; } }
+.hero .tracks-area { position: relative; }
+.hero .tracks-area .playhead { left: 4%; margin-left: 52px; }
+@media (prefers-reduced-motion: reduce) { .playhead { animation: none; } }
+
+/* sections */
+section { padding-block: 56px 8px; scroll-margin-top: 64px; }
+.sec-head { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; border-top: 1px solid var(--line); padding-top: 16px; }
+.sec-head h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 700; }
+.about { display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; }
+.about > * { min-width: 0; }
+.about p + p { margin-top: 14px; }
+.about p { max-width: 62ch; }
+.facts { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; gap: 14px; align-content: start; }
+.facts div { display: grid; gap: 2px; }
+.facts b { font-weight: 600; }
+.note { border: 1px dashed var(--line); border-radius: 6px; padding: 14px 16px; color: var(--muted); font-size: 14px; margin-top: 20px; max-width: 62ch; }
+
+/* work */
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.chip { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 20px; align-items: start; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; overflow: hidden; min-width: 0; }
+.cover { display: block; width: 100%; aspect-ratio: 16 / 9; background: var(--panel-2); }
+.cover svg { width: 100%; height: 100%; display: block; }
+.card-body { padding: 16px; display: grid; gap: 10px; }
+.card h3 { font-size: 1.5rem; font-weight: 700; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--line); border-radius: 3px; padding: 2px 7px; color: var(--muted); }
+.badge { font-family: var(--font-mono); font-size: 11px; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; }
+.card .toggle { justify-self: start; background: none; border: 0; padding: 0; color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.detail { padding: 0 16px 18px; display: grid; gap: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+.detail[hidden] { display: none; }
+.detail dl { margin: 0; display: grid; gap: 10px; }
+.detail dt { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.detail dd { margin: 2px 0 0; }
+.detail ul { margin: 4px 0 0; padding-left: 18px; }
+.detail li + li { margin-top: 4px; }
+.mini { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.mini .track { grid-template-columns: 36px 1fr; min-height: 22px; }
+.mini .tn { padding: 3px 6px; font-size: 10px; }
+.mini .lane { height: 22px; }
+.mini .clip { top: 3px; bottom: 3px; font-size: 9px; padding: 1px 4px; }
+
+/* skills */
+.skills { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 20px; }
+.skills > * { min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 20px; }
+.panel h3 { font-size: 1.25rem; margin-bottom: 14px; }
+.bar { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin-bottom: 12px; font-size: 14px; }
+.bar .track-bar { grid-column: 1 / -1; height: 6px; background: var(--panel-2); border-radius: 3px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--teal); }
+.bar:nth-child(even) .fill { background: var(--amber); }
+.list { margin: 0; padding-left: 18px; }
+.list li + li { margin-top: 6px; }
+
+/* process */
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr)); gap: 16px; padding: 0; margin: 0; list-style: none; }
+.steps li { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 6px; align-content: start; }
+.steps h3 { font-size: 1.15rem; }
+.steps p { color: var(--muted); font-size: 14px; }
+
+/* services */
+.services { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+.services > div { border-left: 3px solid var(--teal); padding: 4px 0 4px 14px; }
+.services > div:nth-child(2n) { border-color: var(--amber); }
+.services > div:nth-child(3n) { border-color: var(--rose); }
+.services h3 { font-size: 1.15rem; margin-bottom: 4px; }
+.services p { color: var(--muted); font-size: 14px; }
+
+/* contact */
+.contact { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.contact > * { min-width: 0; }
+.contact h3 { font-size: clamp(1.8rem, 4vw, 3rem); max-width: 14ch; }
+.rows { display: grid; gap: 10px; }
+.row { display: flex; align-items: center; gap: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; flex-wrap: wrap; }
+.row .k { width: 84px; flex: none; }
+.row .v { flex: 1; min-width: 0; overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 14px; }
+.copy { background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; font-size: 13px; }
+footer { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 16px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; color: var(--muted); font-size: 13px; }
+
+@media (max-width: 760px) {
+  .about, .contact { grid-template-columns: 1fr; }
+  .ruler { padding-left: 12px; }
+  .hero { padding-block: 36px 24px; }
+  nav a { padding: 6px 8px; }
+}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">Priyank Cuts</a>
+    <span class="tc" id="tc" aria-hidden="true">00:00:00:00</span>
+    <nav aria-label="Sections">
+      <a href="#work">Work</a><a href="#about">About</a><a href="#skills">Skills</a><a href="#process">Process</a><a href="#contact">Contact</a>
+    </nav>
+    <button class="theme" id="theme" type="button" aria-label="Switch colour theme">Theme</button>
+  </div>
+</header>
+
+<main class="wrap" id="top">
+  <div class="hero">
+    <div class="label">Video editor / Mumbai, India</div>
+    <h1>I cut stories to the <em>beat</em>.</h1>
+    <p class="sub">Short-form reels, YouTube videos, product promos and cinematic travel edits. I handle the full edit: story structure, pacing, colour, sound and delivery in the right format for each platform.</p>
+    <div class="cta">
+      <a class="btn primary" href="#work">See my projects</a>
+      <a class="btn" href="#contact">Hire me</a>
+    </div>
+    <div class="meta"><span>6 projects</span><span>Premiere Pro / After Effects / DaVinci Resolve</span><span>9:16 / 16:9 / 1:1 delivery</span></div>
+
+    <div class="timeline" role="img" aria-label="Sample edit timeline showing video, title, music and sound effect tracks">
+      <div class="ruler"><span>00:00</span><span>00:15</span><span>00:30</span><span>00:45</span><span>01:00</span></div>
+      <div class="tracks-area">
+        <div class="track"><div class="tn">V2</div><div class="lane">
+          <div class="clip c2" style="left:6%;width:16%">Title card</div>
+          <div class="clip c2" style="left:48%;width:14%">Lower third</div>
+          <div class="clip c2" style="left:84%;width:12%">End slate</div></div></div>
+        <div class="track"><div class="tn">V1</div><div class="lane">
+          <div class="clip c0" style="left:0;width:14%">Opener</div>
+          <div class="clip c0" style="left:14.4%;width:20%">Street wide</div>
+          <div class="clip c0" style="left:35%;width:10%">Cut-in</div>
+          <div class="clip c0" style="left:45.4%;width:26%">Interview</div>
+          <div class="clip c0" style="left:72%;width:12%">B-roll</div>
+          <div class="clip c0" style="left:84.4%;width:15.6%">Outro</div></div></div>
+        <div class="track"><div class="tn">A1</div><div class="lane">
+          <div class="clip c3" style="left:0;width:100%">Music bed, ducked under dialogue</div></div></div>
+        <div class="track"><div class="tn">A2</div><div class="lane">
+          <div class="clip c1" style="left:10%;width:6%">Whoosh</div>
+          <div class="clip c1" style="left:34%;width:5%">Hit</div>
+          <div class="clip c1" style="left:46%;width:24%">Dialogue</div>
+          <div class="clip c1" style="left:80%;width:8%">Foley</div></div></div>
+        <div class="playhead" aria-hidden="true"></div>
+      </div>
+    </div>
+  </div>
+
+  <section id="work">
+    <div class="sec-head"><span class="label">Bin 01</span><h2>Selected projects</h2></div>
+    <div class="filters" id="filters" role="group" aria-label="Filter projects"></div>
+    <div class="grid" id="grid"></div>
+    <p class="note">All six pieces are self-initiated practice projects, made to build and show my editing skills. Each card lists where the footage came from. I do not claim any of them as paid client work.</p>
+  </section>
+
+  <section id="about">
+    <div class="sec-head"><span class="label">Bin 02</span><h2>About me</h2></div>
+    <div class="about">
+      <div>
+        <p>I am Priyank, a video editor based in Mumbai and an MSc Information Technology student at S.K. Somaiya University. I started editing because I wanted my own videos to feel the way the ones I watched felt: tight, rhythmic and clear about what they are saying.</p>
+        <p>My IT background helps. I organise projects with clean folder structures and naming, I use proxies and keyboard shortcuts to keep edits fast, and I keep my export settings consistent so files are ready for the platform the first time.</p>
+        <p>I am looking for entry-level video editor roles and freelance work with brands, creators and agencies who want reliable turnaround and clean, well-paced edits.</p>
+      </div>
+      <div class="facts">
+        <div><span class="label">Education</span><b>MSc Information Technology</b><span>S.K. Somaiya University, Mumbai</span></div>
+        <div><span class="label">Earlier degree</span><b>BSc Information Technology</b><span>B.K. Birla College</span></div>
+        <div><span class="label">Languages</span><b>English, Hindi</b></div>
+        <div><span class="label">Availability</span><b>Full-time, freelance, remote or Mumbai</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="skills">
+    <div class="sec-head"><span class="label">Bin 03</span><h2>Skills and software</h2></div>
+    <div class="skills">
+      <div class="panel">
+        <h3>Software</h3>
+        <div class="bar"><span>Adobe Premiere Pro</span><span class="mono">Intermediate</span><div class="track-bar"><div class="fill" style="width:70%"></div></div></div>
+        <div class="bar"><span>DaVinci Resolve (colour)</span><span class="mono">Advanced</span><div class="track-bar"><div class="fill" style="width:88%"></div></div></div>
+        <div class="bar"><span>After Effects</span><span class="mono">Intermediate</span><div class="track-bar"><div class="fill" style="width:68%"></div></div></div>
+        <div class="bar"><span>CapCut</span><span class="mono">Advanced</span><div class="track-bar"><div class="fill" style="width:90%"></div></div></div>
+        <div class="bar"><span>Adobe Audition</span><span class="mono">Intermediate</span><div class="track-bar"><div class="fill" style="width:64%"></div></div></div>
+        <div class="bar"><span>Photoshop (thumbnails)</span><span class="mono">Intermediate</span><div class="track-bar"><div class="fill" style="width:66%"></div></div></div>
+      </div>
+      <div class="panel">
+        <h3>Editing craft</h3>
+        <ul class="list">
+          <li>Story structure and pacing for short and long form</li>
+          <li>J-cuts, L-cuts, match cuts and speed ramps</li>
+          <li>Beat-synced editing to music</li>
+          <li>Colour correction and grading, LUT workflow</li>
+          <li>Dialogue clean-up, music ducking, sound design</li>
+          <li>Kinetic captions, lower thirds, simple motion graphics</li>
+          <li>Green screen keying and masking</li>
+          <li>Multicam and proxy workflows</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>Delivery and workflow</h3>
+        <ul class="list">
+          <li>Exports for YouTube, Instagram Reels, Shorts and LinkedIn</li>
+          <li>Safe-area aware framing for 9:16, 1:1 and 16:9</li>
+          <li>Organised bins, naming and project backups</li>
+          <li>Subtitles and SRT files in English and Hindi</li>
+          <li>Revision rounds tracked against written feedback</li>
+          <li>H.264, H.265 and ProRes export settings</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="sec-head"><span class="label">Bin 04</span><h2>How I work on an edit</h2></div>
+    <ol class="steps">
+      <li><span class="label">Step 1</span><h3>Ingest</h3><p>Sync, rename and sort footage. Create proxies and a bin structure before the first cut.</p></li>
+      <li><span class="label">Step 2</span><h3>Assembly</h3><p>Lay out the best takes in story order, and match the structure to the brief.</p></li>
+      <li><span class="label">Step 3</span><h3>Rough cut</h3><p>Trim for pace, remove dead air, and test the opening hook on its own.</p></li>
+      <li><span class="label">Step 4</span><h3>Fine cut</h3><p>Tighten transitions, sync cuts to the music, and add titles and graphics.</p></li>
+      <li><span class="label">Step 5</span><h3>Colour and sound</h3><p>Balance shots, apply the grade, clean dialogue, and mix music and effects.</p></li>
+      <li><span class="label">Step 6</span><h3>Export and revise</h3><p>Deliver the right format for each platform, then apply one clear round of notes.</p></li>
+    </ol>
+  </section>
+
+  <section id="services">
+    <div class="sec-head"><span class="label">Bin 05</span><h2>What I can edit for you</h2></div>
+    <div class="services">
+      <div><h3>Reels and Shorts</h3><p>Vertical edits with captions, hooks and beat sync.</p></div>
+      <div><h3>YouTube videos</h3><p>Talking head, vlogs and explainers with B-roll and retention-minded pacing.</p></div>
+      <div><h3>Product and brand promos</h3><p>Short ads with titles, motion graphics and clean sound.</p></div>
+      <div><h3>Highlights and recaps</h3><p>Sports, events and trips cut into a short story.</p></div>
+      <div><h3>Colour and sound polish</h3><p>Grade and mix a video you already shot.</p></div>
+      <div><h3>Captions and subtitles</h3><p>Timed subtitles in English and Hindi, burned in or as SRT.</p></div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <div class="sec-head"><span class="label">Bin 06</span><h2>Contact</h2></div>
+    <div class="contact">
+      <h3>Have footage? Let's cut it.</h3>
+      <div class="rows">
+        <div class="row"><span class="label k">Email</span><span class="v" id="v-email">priyankiyer17@gmail.com</span><button class="copy" type="button" data-copy="v-email">Copy</button></div>
+        <div class="row"><span class="label k">Phone</span><span class="v" id="v-phone">+91 99307 51671</span><button class="copy" type="button" data-copy="v-phone">Copy</button></div>
+        <div class="row"><span class="label k">LinkedIn</span><span class="v" id="v-li">linkedin.com/in/priyank-iyer-8437a9345</span><button class="copy" type="button" data-copy="v-li">Copy</button></div>
+      </div>
+    </div>
+  </section>
+
+  <footer><span>Priyank / Video Editor / Mumbai</span><span class="mono" id="foot-tc">Total runtime 00:00:00</span></footer>
+</main>
+
+<script>
+(function () {
+  var projects = [
+    { id: "monsoon", title: "Monsoon Local", cat: "Cinematic", ratio: "16:9", length: "1:45", year: "2026",
+      tagline: "A short travel film about the Mumbai monsoon commute.",
+      c1: "#0b8f80", c2: "#14283a", shape: "rain",
+      footage: "Self-shot on a phone, plus free-licence rain and city B-roll",
+      role: "Editor, colourist, sound designer",
+      tools: ["Premiere Pro", "DaVinci Resolve", "Audition"],
+      brief: "Show the feeling of a rainy train commute in under two minutes, with no voiceover and one clear emotional turn from rush to calm.",
+      did: ["Built a rhythm around the sound of rain, then dropped the music for the platform scene", "Used J-cuts so ambient sound leads each new shot", "Graded a cool teal shadow and warm skin look in Resolve", "Speed-ramped the train arrival to land on the beat"],
+      result: "Delivered a 4K master and a 1080p web version. Opening hook is under three seconds.",
+      tracks: [["V2", [[4,14,"Title",2],[84,12,"End",2]]], ["V1", [[0,20,"Platform",0],[20,25,"Train",0],[45,18,"Crowd",0],[63,22,"Window",0],[85,15,"Dawn",0]]], ["A1", [[0,100,"Rain bed + music",3]]], ["A2", [[18,6,"Horn",1],[44,10,"Doors",1],[70,14,"Ambience",1]]]] },
+    { id: "reelfuel", title: "Reel Fuel", cat: "Short-form", ratio: "9:16", length: "6 x 0:20", year: "2026",
+      tagline: "Six Instagram Reels for a fictional coffee brand.",
+      c1: "#f2a93b", c2: "#3a1d10", shape: "cup",
+      footage: "Free-licence stock and self-shot cafe clips",
+      role: "Editor and motion designer",
+      tools: ["CapCut", "Premiere Pro", "Photoshop"],
+      brief: "Create a repeatable Reel format that hooks in the first second, uses captions for sound-off viewing, and ends on a clear call to action.",
+      did: ["Designed one caption style and reused it across all six Reels", "Cut every transition on a beat marker", "Kept key text inside the 9:16 safe area", "Built a reusable template for lower thirds and end cards"],
+      result: "Six consistent Reels exported at 1080 x 1920, each under 20 seconds, with a shared look.",
+      tracks: [["V2", [[0,30,"Caption",2],[35,30,"Caption",2],[70,28,"CTA",2]]], ["V1", [[0,12,"Pour",0],[12,15,"Steam",0],[27,10,"Cup",0],[37,18,"Latte",0],[55,20,"Table",0],[75,25,"Logo",0]]], ["A1", [[0,100,"Beat track",3]]], ["A2", [[11,4,"Pour",1],[36,4,"Clink",1],[74,6,"Pop",1]]]] },
+    { id: "lastover", title: "The Last Over", cat: "Highlights", ratio: "16:9", length: "2:30", year: "2025",
+      tagline: "A gully cricket match cut like a broadcast highlight reel.",
+      c1: "#ef6f8a", c2: "#1d1530", shape: "ball",
+      footage: "Self-shot on a phone at a local ground",
+      role: "Editor and sound designer",
+      tools: ["Premiere Pro", "After Effects", "Audition"],
+      brief: "Turn an hour of casual match footage into a tense two-and-a-half-minute highlight, with a clear build to the final over.",
+      did: ["Picked key moments from the raw footage and built a score-line story", "Added slow motion and speed ramps on boundaries", "Animated a simple score bug and player name tags in After Effects", "Layered crowd sound and bat hits to add impact"],
+      result: "A paced highlight with three build-ups, one climax and a clean end slate.",
+      tracks: [["V2", [[5,12,"Score bug",2],[40,12,"Name tag",2],[88,10,"End slate",2]]], ["V1", [[0,14,"Toss",0],[14,16,"Bowl",0],[30,12,"Six",0],[42,18,"Wicket",0],[60,16,"Run",0],[76,24,"Final ball",0]]], ["A1", [[0,100,"Music, rising",3]]], ["A2", [[13,5,"Bat",1],[31,6,"Crowd",1],[77,18,"Crowd roar",1]]]] },
+    { id: "pitch", title: "Tick Pro", cat: "Promo", ratio: "16:9", length: "0:45", year: "2026",
+      tagline: "A concept launch ad for a fictional smartwatch.",
+      c1: "#9b8cff", c2: "#0f1630", shape: "watch",
+      footage: "Free-licence product-style stock and After Effects graphics",
+      role: "Editor and motion designer",
+      tools: ["After Effects", "Premiere Pro", "Audition"],
+      brief: "Make a 45-second product promo that explains three features with simple animation and one strong closing line.",
+      did: ["Animated feature callouts with easing and consistent timing", "Matched cuts to the music's build and drop", "Created a clean end card with logo and tagline", "Mixed a short whoosh and click library for UI sound"],
+      result: "A polished 45-second promo and a 15-second cut-down for social.",
+      tracks: [["V2", [[8,20,"Feature 1",2],[34,20,"Feature 2",2],[58,20,"Feature 3",2],[82,16,"Tagline",2]]], ["V1", [[0,25,"Hero shot",0],[25,25,"Detail",0],[50,25,"Lifestyle",0],[75,25,"End card",0]]], ["A1", [[0,100,"Electronic track",3]]], ["A2", [[8,4,"Click",1],[34,4,"Click",1],[58,4,"Click",1],[82,5,"Hit",1]]]] },
+    { id: "studio", title: "Studio Notes", cat: "YouTube", ratio: "16:9", length: "8:00", year: "2026",
+      tagline: "A talking-head explainer edited for audience retention.",
+      c1: "#2fc4b2", c2: "#10202a", shape: "mic",
+      footage: "Self-shot talking head, free-licence B-roll",
+      role: "Editor, sound editor, thumbnail designer",
+      tools: ["Premiere Pro", "Audition", "Photoshop"],
+      brief: "Edit an eight-minute explainer so that every section earns attention, with a clear hook, chapters and a strong thumbnail.",
+      did: ["Removed pauses and filler with tight jump cuts", "Added B-roll and on-screen text whenever the point changed", "Cleaned dialogue with noise reduction and levelling", "Designed three thumbnail options and a title"],
+      result: "A paced eight-minute video with chapters, captions and a final thumbnail.",
+      tracks: [["V2", [[10,10,"Text",2],[30,10,"Lower third",2],[55,10,"Text",2],[80,12,"Subscribe",2]]], ["V1", [[0,18,"Hook",0],[18,30,"Talk",0],[48,10,"B-roll",0],[58,24,"Talk",0],[82,18,"Outro",0]]], ["A1", [[0,100,"Voice, cleaned",1]]], ["A2", [[0,100,"Light music bed",3]]]] },
+    { id: "wedding", title: "Two Days in Jaipur", cat: "Cinematic", ratio: "16:9", length: "1:20", year: "2025",
+      tagline: "A travel teaser with a warm, filmic look.",
+      c1: "#e07a5f", c2: "#2a1a24", shape: "arch",
+      footage: "Self-shot on a phone and free-licence drone clips",
+      role: "Editor and colourist",
+      tools: ["DaVinci Resolve", "Premiere Pro"],
+      brief: "Capture a weekend trip as a short teaser with slow, confident pacing and a warm film look.",
+      did: ["Built a LUT-based colour pipeline and balanced shots from different cameras", "Used match cuts on shapes and arches across locations", "Added gentle push-ins to still shots", "Matched the grade between day and golden-hour scenes"],
+      result: "A consistent, warm teaser with a single colour look from start to end.",
+      tracks: [["V2", [[3,14,"Title",2],[86,12,"Credits",2]]], ["V1", [[0,18,"Fort",0],[18,18,"Bazaar",0],[36,16,"Palace",0],[52,20,"Street",0],[72,28,"Sunset",0]]], ["A1", [[0,100,"Acoustic score",3]]], ["A2", [[20,12,"Market",1],[54,14,"Footsteps",1]]]] }
+  ];
+
+  var colors = ["c0", "c1", "c2", "c3"];
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  function cover(p) {
+    var art = "";
+    if (p.shape === "rain") { for (var i = 0; i < 14; i++) art += '<line x1="' + (20 + i * 22) + '" y1="' + (10 + (i % 4) * 12) + '" x2="' + (14 + i * 22) + '" y2="' + (50 + (i % 3) * 14) + '" stroke="#ffffff" stroke-opacity=".35" stroke-width="1.5"/>'; art += '<rect x="30" y="100" width="260" height="22" fill="#0d1014" fill-opacity=".5"/>'; }
+    if (p.shape === "cup") art = '<path d="M120 70 h80 v40 a40 40 0 0 1 -80 0 z" fill="#ffffff" fill-opacity=".85"/><path d="M200 80 h14 a14 14 0 0 1 0 28 h-14" fill="none" stroke="#ffffff" stroke-opacity=".85" stroke-width="7"/><path d="M140 62 q6 -14 0 -26 M160 62 q6 -14 0 -26 M180 62 q6 -14 0 -26" fill="none" stroke="#ffffff" stroke-opacity=".6" stroke-width="3"/>';
+    if (p.shape === "ball") art = '<circle cx="160" cy="88" r="38" fill="#ffffff" fill-opacity=".9"/><path d="M130 62 q30 26 0 52 M190 62 q-30 26 0 52" fill="none" stroke="' + p.c2 + '" stroke-width="3"/>';
+    if (p.shape === "watch") art = '<rect x="132" y="30" width="56" height="30" fill="#ffffff" fill-opacity=".5"/><rect x="132" y="116" width="56" height="30" fill="#ffffff" fill-opacity=".5"/><rect x="118" y="56" width="84" height="68" rx="16" fill="#ffffff" fill-opacity=".9"/><circle cx="160" cy="90" r="20" fill="none" stroke="' + p.c2 + '" stroke-width="3"/><path d="M160 90 v-12 M160 90 l9 6" stroke="' + p.c2 + '" stroke-width="3" fill="none"/>';
+    if (p.shape === "mic") art = '<rect x="140" y="38" width="40" height="64" rx="20" fill="#ffffff" fill-opacity=".9"/><path d="M126 86 a34 34 0 0 0 68 0 M160 120 v22 M140 142 h40" fill="none" stroke="#ffffff" stroke-opacity=".9" stroke-width="5"/>';
+    if (p.shape === "arch") art = '<path d="M90 140 v-60 a30 30 0 0 1 60 0 v60 z M170 140 v-60 a30 30 0 0 1 60 0 v60 z" fill="#ffffff" fill-opacity=".8"/><circle cx="250" cy="42" r="16" fill="#ffffff" fill-opacity=".85"/>';
+    return '<svg viewBox="0 0 320 180" role="img" aria-label="Cover frame for ' + esc(p.title) + '" xmlns="http://www.w3.org/2000/svg">' +
+      '<defs><linearGradient id="g-' + p.id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + p.c1 + '"/><stop offset="1" stop-color="' + p.c2 + '"/></linearGradient></defs>' +
+      '<rect width="320" height="180" fill="url(#g-' + p.id + ')"/>' + art +
+      '<rect width="320" height="16" fill="#000000"/><rect y="164" width="320" height="16" fill="#000000"/>' +
+      '<text x="10" y="12" font-family="monospace" font-size="9" fill="#ffffff">REC  ' + esc(p.ratio) + '</text>' +
+      '<text x="310" y="12" text-anchor="end" font-family="monospace" font-size="9" fill="#ffffff">' + esc(p.length) + '</text>' +
+      '<text x="10" y="176" font-family="monospace" font-size="9" fill="#ffffff">' + esc(p.title.toUpperCase()) + '</text>' +
+      '<text x="310" y="176" text-anchor="end" font-family="monospace" font-size="9" fill="#ffffff">' + esc(p.year) + '</text></svg>';
+  }
+
+  function mini(p) {
+    var h = '<div class="mini" role="img" aria-label="Timeline layout of ' + esc(p.title) + '">';
+    p.tracks.forEach(function (t) {
+      h += '<div class="track"><div class="tn">' + t[0] + '</div><div class="lane">';
+      t[1].forEach(function (c) { h += '<div class="clip ' + colors[c[3]] + '" style="left:' + c[0] + '%;width:' + c[1] + '%">' + esc(c[2]) + '</div>'; });
+      h += '</div></div>';
+    });
+    return h + '</div>';
+  }
+
+  function card(p) {
+    var el = document.createElement("article");
+    el.className = "card"; el.setAttribute("data-cat", p.cat);
+    el.innerHTML =
+      '<div class="cover">' + cover(p) + '</div>' +
+      '<div class="card-body"><span class="badge">' + esc(p.cat) + ' / concept project</span>' +
+      '<h3>' + esc(p.title) + '</h3><p>' + esc(p.tagline) + '</p>' +
+      '<div class="tags">' + p.tools.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("") + '</div>' +
+      '<button class="toggle" type="button" aria-expanded="false" aria-controls="d-' + p.id + '">View breakdown</button></div>' +
+      '<div class="detail" id="d-' + p.id + '" hidden>' +
+      '<dl><div><dt>Brief</dt><dd>' + esc(p.brief) + '</dd></div>' +
+      '<div><dt>My role</dt><dd>' + esc(p.role) + '</dd></div>' +
+      '<div><dt>Footage</dt><dd>' + esc(p.footage) + '</dd></div>' +
+      '<div><dt>What I did</dt><dd><ul>' + p.did.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul></dd></div>' +
+      '<div><dt>Result</dt><dd>' + esc(p.result) + '</dd></div>' +
+      '<div><dt>Timeline layout</dt><dd>' + '</dd></div></dl>' + mini(p) + '</div>';
+    var btn = el.querySelector(".toggle"), d = el.querySelector(".detail");
+    btn.addEventListener("click", function () {
+      var open = d.hidden;
+      d.hidden = !open;
+      btn.setAttribute("aria-expanded", String(open));
+      btn.textContent = open ? "Hide breakdown" : "View breakdown";
+    });
+    return el;
+  }
+
+  var grid = document.getElementById("grid"), filters = document.getElementById("filters");
+  projects.forEach(function (p) { grid.appendChild(card(p)); });
+  var cats = ["All"]; projects.forEach(function (p) { if (cats.indexOf(p.cat) < 0) cats.push(p.cat); });
+  cats.forEach(function (c, i) {
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = c; b.setAttribute("aria-pressed", i === 0 ? "true" : "false");
+    b.addEventListener("click", function () {
+      Array.prototype.forEach.call(filters.children, function (x) { x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      Array.prototype.forEach.call(grid.children, function (card) { card.hidden = !(c === "All" || card.getAttribute("data-cat") === c); });
+    });
+    filters.appendChild(b);
+  });
+
+  /* running timecode follows scroll position, 24 fps */
+  var tc = document.getElementById("tc");
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function update() {
+    var max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    var frac = Math.min(1, Math.max(0, (window.scrollY || 0) / max));
+    var frames = Math.round(frac * 90 * 24);
+    var f = frames % 24, s = Math.floor(frames / 24) % 60, m = Math.floor(frames / 1440);
+    tc.textContent = "00:" + pad(m) + ":" + pad(s) + ":" + pad(f);
+  }
+  window.addEventListener("scroll", update, { passive: true }); update();
+  var total = 0; projects.forEach(function (p) { total += 1; });
+  document.getElementById("foot-tc").textContent = total + " projects / runtime 00:01:30";
+
+  /* theme toggle */
+  var root = document.documentElement;
+  document.getElementById("theme").addEventListener("click", function () {
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+  });
+
+  /* copy buttons */
+  Array.prototype.forEach.call(document.querySelectorAll(".copy"), function (b) {
+    b.addEventListener("click", function () {
+      var node = document.getElementById(b.getAttribute("data-copy"));
+      function done() { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy"; }, 1500); }
+      function fallback() {
+        var r = document.createRange(); r.selectNodeContents(node);
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        b.textContent = "Selected"; setTimeout(function () { b.textContent = "Copy"; }, 1500);
+      }
+      try { navigator.clipboard.writeText(node.textContent).then(done, fallback); } catch (e) { fallback(); }
+    });
+  });
+})();
+</script>
+
+</body></html>
